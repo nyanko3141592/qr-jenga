@@ -1,0 +1,79 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+JP:wght@400;600;700;900&display=swap');
+
+:root { color: #121212; background: #f4f1e8; font-family: "Noto Sans JP", sans-serif; font-synthesis: none; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; min-height: 100vh; background: radial-gradient(circle at 78% 18%, rgba(255,216,77,.25), transparent 24rem), #f4f1e8; }
+button { font: inherit; }
+.shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; min-height: 100vh; padding: 24px 0 40px; }
+.topbar { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #121212; padding-bottom: 18px; }
+.brand { display: flex; align-items: center; gap: 12px; font-weight: 900; font-size: 1.1rem; letter-spacing: -.03em; }
+.brand-mark { width: 24px; height: 24px; background: conic-gradient(#121212 0 25%, #ffd84d 0 50%, #121212 0 75%, #ffd84d 0); border: 3px solid #121212; }
+.text-button { border: 0; border-bottom: 1px solid; padding: 4px 0; background: transparent; cursor: pointer; font-weight: 700; }
+.setup-card { display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(50px, 9vw, 130px); align-items: center; min-height: calc(100vh - 100px); padding: 60px 4vw; }
+.eyebrow { font: 500 .78rem "DM Mono", monospace; letter-spacing: .18em; margin: 0 0 20px; }
+h1 { font-size: clamp(3.1rem, 7vw, 6.8rem); line-height: .98; margin: 0; letter-spacing: -.07em; font-weight: 900; }
+h1 em { color: transparent; -webkit-text-stroke: 2px #121212; font-style: normal; }
+.lead { max-width: 33rem; margin: 32px 0 0; font-size: 1.05rem; line-height: 1.9; font-weight: 600; }
+.setup-panel { border: 2px solid #121212; background: rgba(255,255,255,.42); padding: clamp(24px, 4vw, 42px); box-shadow: 12px 12px 0 #121212; }
+fieldset { border: 0; padding: 0; margin: 0 0 32px; }
+legend { font-weight: 900; margin-bottom: 14px; }
+.difficulty-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.difficulty { border: 2px solid #121212; background: transparent; min-height: 88px; cursor: pointer; display: grid; place-content: center; gap: 5px; }
+.difficulty strong { font-size: .95rem; }
+.difficulty small { font: .7rem "DM Mono"; }
+.difficulty.active { background: #ffd84d; box-shadow: inset 0 -5px 0 rgba(0,0,0,.12); }
+.player-preview { display: flex; align-items: center; justify-content: space-between; margin: 28px 0; font: .74rem "DM Mono"; }
+.player-preview span { display: grid; gap: 2px; }
+.player-preview b { font-size: 1.5rem; }
+.player-preview i { font-style: normal; opacity: .45; }
+.primary, .secondary { width: 100%; min-height: 56px; border: 2px solid #121212; cursor: pointer; font-weight: 900; }
+.primary { color: #fff; background: #121212; }
+.primary:hover:not(:disabled) { background: #343434; }
+.primary:disabled { background: #aaa; border-color: #aaa; cursor: not-allowed; }
+.secondary { margin-top: 10px; background: transparent; }
+.calibration-note { text-align: center; font-size: .75rem; margin: 14px 0 0; color: #666; }
+.game-layout { display: grid; grid-template-columns: minmax(270px, 360px) minmax(320px, 1fr); gap: clamp(36px, 8vw, 110px); align-items: center; min-height: calc(100vh - 100px); padding: 48px 4vw; }
+.turn { display: flex; align-items: center; gap: 16px; border-bottom: 2px solid; padding-bottom: 24px; }
+.turn div { display: grid; }
+.turn small { font: .75rem "DM Mono"; letter-spacing: .12em; }
+.turn strong { font-size: 2rem; }
+.pulse { width: 18px; height: 18px; background: #ffd84d; border: 2px solid #121212; animation: pulse 1.4s infinite; }
+@keyframes pulse { 50% { transform: scale(.7); opacity: .6; } }
+.instruction { display: grid; grid-template-columns: 42px 1fr; gap: 16px; margin: 32px 0; align-items: start; }
+.instruction p { margin: 0; line-height: 1.75; }
+.step { font: 500 .75rem "DM Mono"; border: 1px solid; text-align: center; padding: 6px; }
+.danger { background: #e93e2d; border-color: #121212; }
+.result h1 { font-size: clamp(2.3rem, 5vw, 4.5rem); line-height: 1.05; }
+.result > p:last-child { line-height: 1.7; }
+.payload { padding: 16px; border: 2px solid; margin: 24px 0; display: grid; gap: 6px; overflow-wrap: anywhere; }
+.payload small { font-weight: 700; }
+.payload code { font-family: "DM Mono"; }
+.board-wrap { position: relative; width: min(100%, 660px); justify-self: end; }
+.qr-board { display: grid; grid-template-columns: repeat(var(--size), 1fr); aspect-ratio: 1; padding: 6.5%; background: #fff; border: 2px solid #121212; box-shadow: 16px 16px 0 #ffd84d; }
+.cell { appearance: none; min-width: 0; width: 100%; aspect-ratio: 1; border: 0; border-radius: 0; padding: 0; background: #fff; }
+.cell.black { background: #121212; }
+.cell.black:not(:disabled) { cursor: crosshair; }
+.cell.black:not(:disabled):hover, .cell.selected { background: #e93e2d; outline: 1px solid #fff; z-index: 1; }
+.cell.protected { background-image: repeating-linear-gradient(45deg, transparent 0 2px, rgba(255,255,255,.26) 2px 3px); }
+.cell.removed { background: #fff; animation: pop .22s ease-out; }
+@keyframes pop { from { transform: scale(1.7); background: #e93e2d; } }
+.scan-line { position: absolute; z-index: 3; pointer-events: none; left: 4%; right: 4%; height: 2px; background: #e93e2d; box-shadow: 0 0 10px #e93e2d; animation: scan 3.5s ease-in-out infinite; opacity: .8; }
+@keyframes scan { 0%,100% { top: 8%; } 50% { top: 90%; } }
+.board-meta { display: flex; justify-content: space-between; margin-top: 18px; font: .7rem "DM Mono"; letter-spacing: .05em; }
+dialog { width: min(520px, calc(100% - 32px)); border: 2px solid #121212; padding: 38px; box-shadow: 12px 12px 0 #ffd84d; }
+dialog::backdrop { background: rgba(18,18,18,.68); }
+dialog h2 { font-size: 2rem; margin: 0 0 22px; }
+dialog li { margin-bottom: 14px; line-height: 1.65; }
+.dialog-close { position: absolute; right: 14px; top: 12px; border: 0; background: transparent; font-size: 1.8rem; cursor: pointer; }
+.dialog-note { background: #f4f1e8; padding: 14px; font-size: .85rem; line-height: 1.6; }
+@media (max-width: 800px) {
+  .shell { width: min(100% - 24px, 620px); padding-top: 16px; }
+  .setup-card, .game-layout { grid-template-columns: 1fr; min-height: auto; padding: 48px 4px; gap: 48px; }
+  .setup-card { padding-top: 56px; }
+  .setup-panel { box-shadow: 8px 8px 0 #121212; }
+  .game-info { order: 2; }
+  .board-wrap { order: 1; justify-self: center; }
+  .qr-board { box-shadow: 9px 9px 0 #ffd84d; }
+  h1 { font-size: clamp(3rem, 15vw, 5rem); }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
