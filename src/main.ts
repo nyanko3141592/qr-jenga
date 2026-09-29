@@ -35,8 +35,8 @@ function render() {
       <h2>読めなくしたら、負け。</h2>
       <ol>
         <li>2人で交互に、黒いマスを1つ選びます。</li>
-        <li>「このマスを抜く」でQRコードから取り除きます。</li>
-        <li>その瞬間に読み取れなくなったプレイヤーの負けです。</li>
+        <li>黒いマスをタップすると、その場で取り除かれます。</li>
+        <li>即座にスキャンされ、読み取れなくしたプレイヤーの負けです。</li>
       </ol>
       <p class="dialog-note">角の大きな模様など、斜線のマスは安全のため抜けません。</p>
     </dialog>
@@ -59,9 +59,9 @@ function setupView() {
         <fieldset>
           <legend>難易度</legend>
           <div class="difficulty-grid">
-            ${difficultyButton("easy", "ゆっくり", "猶予 12")}
-            ${difficultyButton("normal", "ふつう", "猶予 7")}
-            ${difficultyButton("hard", "ギリギリ", "猶予 3")}
+            ${difficultyButton("easy", "ゆっくり", "猶予 8")}
+            ${difficultyButton("normal", "ふつう", "猶予 5")}
+            ${difficultyButton("hard", "ギリギリ", "猶予 2")}
           </div>
         </fieldset>
         <div class="player-preview" aria-label="プレイヤー順">
@@ -166,7 +166,7 @@ function bindGame() {
       render();
       burst(rect.left + rect.width / 2, rect.top + rect.height / 2, !readable);
       navigator.vibrate?.(!readable ? [80, 45, 160] : 35);
-      window.setTimeout(() => { resolving = false; }, 120);
+      window.setTimeout(() => { resolving = false; }, 80);
     });
   });
   document.querySelector("#restartButton")?.addEventListener("click", () => {

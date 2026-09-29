@@ -14,4 +14,12 @@ describe("QR Jenga board", () => {
       expect(playableIndices(board).length).toBeGreaterThan(0);
     }
   });
+
+  it("shortens the safety margin as difficulty rises", () => {
+    const easy = makeStartingBoard("easy", 20260930);
+    const normal = makeStartingBoard("normal", 20260930);
+    const hard = makeStartingBoard("hard", 20260930);
+    expect(easy.removed.size).toBeLessThan(normal.removed.size);
+    expect(normal.removed.size).toBeLessThan(hard.removed.size);
+  });
 });

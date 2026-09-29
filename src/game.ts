@@ -12,7 +12,8 @@ export interface GameBoard {
   payload: string;
 }
 
-const BUFFER: Record<Difficulty, number> = { easy: 12, normal: 7, hard: 3 };
+// Keep matches short: these are the safe cells restored after calibrating to failure.
+const BUFFER: Record<Difficulty, number> = { easy: 8, normal: 5, hard: 2 };
 
 function protectFunctionalPatterns(size: number, x: number, y: number) {
   const finder =
