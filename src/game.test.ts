@@ -3,7 +3,9 @@ import { canDecode, createFullBoard, makeStartingBoard, playableIndices } from "
 
 describe("QR Jenga board", () => {
   it("starts from a readable QR code", () => {
-    expect(canDecode(createFullBoard())).toBe(true);
+    const board = createFullBoard();
+    expect(board.size).toBe(25);
+    expect(canDecode(board)).toBe(true);
   });
 
   it("creates readable calibrated boards for every difficulty", () => {

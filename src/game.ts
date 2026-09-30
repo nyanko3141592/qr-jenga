@@ -13,7 +13,7 @@ export interface GameBoard {
 }
 
 // Keep matches short: these are the safe cells restored after calibrating to failure.
-const BUFFER: Record<Difficulty, number> = { easy: 8, normal: 5, hard: 2 };
+const BUFFER: Record<Difficulty, number> = { easy: 6, normal: 4, hard: 2 };
 
 function protectFunctionalPatterns(size: number, x: number, y: number) {
   const finder =
@@ -21,13 +21,14 @@ function protectFunctionalPatterns(size: number, x: number, y: number) {
     (x >= size - 8 && y <= 8) ||
     (x <= 8 && y >= size - 8);
   const timingAndFormat = x === 6 || y === 6 || x === 8 || y === 8;
-  // Version 4 has one non-finder alignment pattern centered at (26, 26).
-  const alignment = Math.abs(x - 26) <= 2 && Math.abs(y - 26) <= 2;
+  // Version 2 has one non-finder alignment pattern near the bottom-right.
+  const alignmentCenter = size - 7;
+  const alignment = Math.abs(x - alignmentCenter) <= 2 && Math.abs(y - alignmentCenter) <= 2;
   return finder || timingAndFormat || alignment;
 }
 
-export function createFullBoard(payload = "https://example.com/qr-jenga"): GameBoard {
-  const qr = QRCode.create(payload, { version: 4, errorCorrectionLevel: "H" });
+export function createFullBoard(payload = "GAME OVER"): GameBoard {
+  const qr = QRCode.create(payload, { version: 2, errorCorrectionLevel: "H" });
   const size = qr.modules.size;
   const cells = Array.from(qr.modules.data, Boolean);
   const protectedCells = cells.map((_, index) => {

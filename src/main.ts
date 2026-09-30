@@ -59,8 +59,8 @@ function setupView() {
         <fieldset>
           <legend>難易度</legend>
           <div class="difficulty-grid">
-            ${difficultyButton("easy", "ゆっくり", "猶予 8")}
-            ${difficultyButton("normal", "ふつう", "猶予 5")}
+            ${difficultyButton("easy", "ゆっくり", "猶予 6")}
+            ${difficultyButton("normal", "ふつう", "猶予 4")}
             ${difficultyButton("hard", "ギリギリ", "猶予 2")}
           </div>
         </fieldset>
