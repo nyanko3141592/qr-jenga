@@ -4,7 +4,9 @@ import {
   makeStartingBoard,
   playableTiles,
   PLAY_GRID_SIZE,
+  removableIndicesForTile,
   removeTile,
+  wouldTileBreak,
   type Difficulty,
   type GameBoard,
 } from "./game";
@@ -20,6 +22,8 @@ let turns = 0;
 let difficulty: Difficulty = "normal";
 let lastRemoved: number | null = null;
 let resolving = false;
+let analysisUsed = [false, false];
+let analyzedFatal: Set<number> | null = null;
 
 function render() {
   app.innerHTML = `
@@ -38,6 +42,7 @@ function render() {
         <li>2人で交互に、黒いマスを1つ選びます。</li>
         <li>黒いマスをタップすると、その場で取り除かれます。</li>
         <li>即座にスキャンされ、読み取れなくしたプレイヤーの負けです。</li>
+        <li>数字は破壊する黒マス数。各プレイヤーは1回だけ即死マスを解析できます。</li>
       </ol>
       <p class="dialog-note">角の大きな模様など、斜線のマスは安全のため抜けません。</p>
     </dialog>
@@ -93,6 +98,7 @@ function gameView() {
           <span class="step">${phase === "lost" ? "END" : "01"}</span>
           <p>${phase === "lost" ? "勝負あり。完成時のメッセージを確認できます。" : "10×10のマスをタップすると、その範囲をまとめて破壊・即スキャンします。"}</p>
         </div>
+        ${phase === "playing" ? `<div class="risk-legend" aria-label="破壊力の見方"><span><i>1</i>安全寄り</span><span><i>2–3</i>勝負</span><span><i>4+</i>危険</span></div><button class="analysis-button" id="analysisButton" ${analysisUsed[player] ? "disabled" : ""}>${analysisUsed[player] ? "解析は使用済み" : "即死マスを解析する　×1"}</button>${analyzedFatal ? `<p class="analysis-result">${analyzedFatal.size > 0 ? `赤い×が即死。ほかは生存します（${analyzedFatal.size}マス）` : "まだ即死マスなし。解析を使うのが早かった！"}</p>` : ""}` : ""}
         ${phase === "lost" ? `<div class="payload"><small>QRの中身</small><code>${board.payload}</code></div><button class="primary" id="restartButton">もう一度あそぶ</button>` : `<div class="instant-note"><span>INSTANT SCAN</span><strong>${turns}</strong><small>マス撃破</small></div>`}
         <button class="secondary" id="backButton">難易度を選び直す</button>
       </aside>
@@ -121,9 +127,13 @@ function renderTiles(value: GameBoard) {
   const playable = new Set(playableTiles(value));
   return Array.from({ length: PLAY_GRID_SIZE ** 2 }, (_, index) => {
     const enabled = playable.has(index) && phase === "playing";
+    const power = removableIndicesForTile(value, index).length;
+    const risk = power <= 1 ? "low" : power <= 3 ? "medium" : "high";
+    const scanned = analyzedFatal && enabled ? " scanned" : "";
+    const fatal = analyzedFatal?.has(index) ? " fatal" : "";
     const x = index % PLAY_GRID_SIZE + 1;
     const y = Math.floor(index / PLAY_GRID_SIZE) + 1;
-    return `<button class="tile${lastRemoved === index ? " hit" : ""}" role="gridcell" data-tile="${index}" ${enabled ? "" : "disabled"} aria-label="${x}列 ${y}行${enabled ? "、タップですぐ破壊" : "、破壊不可"}"></button>`;
+    return `<button class="tile risk-${risk}${scanned}${fatal}${lastRemoved === index ? " hit" : ""}" role="gridcell" data-tile="${index}" ${enabled ? "" : "disabled"} aria-label="${x}列 ${y}行、破壊力${power}${fatal ? "、押すと負け" : enabled ? "、タップですぐ破壊" : "、破壊不可"}">${enabled ? `<span>${fatal ? "×" : power}</span>` : ""}</button>`;
   }).join("");
 }
 
@@ -151,6 +161,8 @@ function bindSetup() {
       player = 0;
       turns = 0;
       lastRemoved = null;
+      analysisUsed = [false, false];
+      analyzedFatal = null;
       render();
     }, 30);
   });
@@ -167,6 +179,7 @@ function bindGame() {
       lastRemoved = tileIndex;
       turns += 1;
       const readable = canDecode(board);
+      analyzedFatal = null;
       if (!readable) {
         loser = player;
         phase = "lost";
@@ -179,18 +192,28 @@ function bindGame() {
       window.setTimeout(() => { resolving = false; }, 80);
     });
   });
+  document.querySelector("#analysisButton")?.addEventListener("click", () => {
+    if (!board || analysisUsed[player]) return;
+    analysisUsed[player] = true;
+    analyzedFatal = new Set(playableTiles(board).filter((tileIndex) => wouldTileBreak(board!, tileIndex)));
+    render();
+  });
   document.querySelector("#restartButton")?.addEventListener("click", () => {
     board = makeStartingBoard(difficulty);
     phase = "playing";
     player = 0;
     turns = 0;
     lastRemoved = null;
+    analysisUsed = [false, false];
+    analyzedFatal = null;
     render();
   });
   document.querySelector("#backButton")?.addEventListener("click", () => {
     phase = "setup";
     board = null;
     lastRemoved = null;
+    analysisUsed = [false, false];
+    analyzedFatal = null;
     render();
   });
 }

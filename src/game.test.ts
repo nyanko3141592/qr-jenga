@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canDecode, createFullBoard, makeStartingBoard, playableIndices, playableTiles, removeTile } from "./game";
+import { canDecode, createFullBoard, makeStartingBoard, playableIndices, playableTiles, removeTile, wouldTileBreak } from "./game";
 
 describe("QR Jenga board", () => {
   it("starts from a readable QR code", () => {
@@ -26,6 +26,13 @@ describe("QR Jenga board", () => {
     });
     expect(tile).toBeDefined();
     expect(removeTile(board, tile!).length).toBeGreaterThan(1);
+  });
+
+  it("can preview whether a play tile is fatal without mutating the board", () => {
+    const board = makeStartingBoard("hard", 12345);
+    const before = board.removed.size;
+    playableTiles(board).forEach((tile) => expect(typeof wouldTileBreak(board, tile)).toBe("boolean"));
+    expect(board.removed.size).toBe(before);
   });
 
   it("shortens the safety margin as difficulty rises", () => {

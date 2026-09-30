@@ -127,6 +127,12 @@ export function removeTile(board: GameBoard, tileIndex: number) {
   return removed;
 }
 
+export function wouldTileBreak(board: GameBoard, tileIndex: number) {
+  const simulated: GameBoard = { ...board, removed: new Set(board.removed) };
+  removeTile(simulated, tileIndex);
+  return !canDecode(simulated);
+}
+
 export function makeStartingBoard(difficulty: Difficulty, seed = Date.now()) {
   const board = createFullBoard();
   const path = shuffled(playableTiles(board), seed);
