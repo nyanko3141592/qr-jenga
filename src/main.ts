@@ -1,9 +1,10 @@
 import "./style.css";
 import {
   canDecode,
-  cellFromIndex,
   makeStartingBoard,
-  playableIndices,
+  playableTiles,
+  PLAY_GRID_SIZE,
+  removeTile,
   type Difficulty,
   type GameBoard,
 } from "./game";
@@ -59,9 +60,9 @@ function setupView() {
         <fieldset>
           <legend>難易度</legend>
           <div class="difficulty-grid">
-            ${difficultyButton("easy", "ゆっくり", "猶予 6")}
-            ${difficultyButton("normal", "ふつう", "猶予 4")}
-            ${difficultyButton("hard", "ギリギリ", "猶予 2")}
+            ${difficultyButton("easy", "ゆっくり", "猶予 5")}
+            ${difficultyButton("normal", "ふつう", "猶予 3")}
+            ${difficultyButton("hard", "ギリギリ", "猶予 1")}
           </div>
         </fieldset>
         <div class="player-preview" aria-label="プレイヤー順">
@@ -90,30 +91,39 @@ function gameView() {
         ${status}
         <div class="instruction">
           <span class="step">${phase === "lost" ? "END" : "01"}</span>
-          <p>${phase === "lost" ? "勝負あり。完成時のメッセージを確認できます。" : "黒いマスをタップすると即破壊・即スキャン。斜線部分は保護されています。"}</p>
+          <p>${phase === "lost" ? "勝負あり。完成時のメッセージを確認できます。" : "10×10のマスをタップすると、その範囲をまとめて破壊・即スキャンします。"}</p>
         </div>
         ${phase === "lost" ? `<div class="payload"><small>QRの中身</small><code>${board.payload}</code></div><button class="primary" id="restartButton">もう一度あそぶ</button>` : `<div class="instant-note"><span>INSTANT SCAN</span><strong>${turns}</strong><small>マス撃破</small></div>`}
         <button class="secondary" id="backButton">難易度を選び直す</button>
       </aside>
       <div class="board-wrap">
         <div class="scan-line" aria-hidden="true"></div>
-        <div class="qr-board" role="grid" aria-label="QRコード盤面" style="--size:${board.size}">
-          ${renderCells(board)}
+        <div class="qr-board">
+          <div class="qr-modules" aria-hidden="true" style="--size:${board.size}">${renderModules(board)}</div>
+          <div class="tile-grid" role="grid" aria-label="10×10の操作盤面" style="--play-size:${PLAY_GRID_SIZE}">${renderTiles(board)}</div>
         </div>
-        <div class="board-meta"><span>ERROR CORRECTION H</span><span>${board.size} × ${board.size}</span></div>
+        <div class="board-meta"><span>10 × 10 PLAY GRID</span><span>QR ${board.size} × ${board.size}</span></div>
       </div>
     </section>
   `;
 }
 
-function renderCells(value: GameBoard) {
+function renderModules(value: GameBoard) {
   return value.cells.map((black, index) => {
     const removed = value.removed.has(index);
     const protectedCell = value.protectedCells[index];
-    const playable = black && !removed && !protectedCell && phase === "playing";
-    const classes = [black && !removed ? "black" : "white", removed ? "removed" : "", protectedCell && black ? "protected" : "", lastRemoved === index ? "fresh" : ""].filter(Boolean).join(" ");
-    const cell = cellFromIndex(value, index);
-    return `<button class="cell ${classes}" role="gridcell" data-index="${index}" ${playable ? "" : "disabled"} aria-label="${cell.x + 1}列 ${cell.y + 1}行${playable ? "、タップですぐ抜きます" : ""}"></button>`;
+    const classes = [black && !removed ? "black" : "white", removed ? "removed" : "", protectedCell && black ? "protected" : ""].filter(Boolean).join(" ");
+    return `<span class="module ${classes}"></span>`;
+  }).join("");
+}
+
+function renderTiles(value: GameBoard) {
+  const playable = new Set(playableTiles(value));
+  return Array.from({ length: PLAY_GRID_SIZE ** 2 }, (_, index) => {
+    const enabled = playable.has(index) && phase === "playing";
+    const x = index % PLAY_GRID_SIZE + 1;
+    const y = Math.floor(index / PLAY_GRID_SIZE) + 1;
+    return `<button class="tile${lastRemoved === index ? " hit" : ""}" role="gridcell" data-tile="${index}" ${enabled ? "" : "disabled"} aria-label="${x}列 ${y}行${enabled ? "、タップですぐ破壊" : "、破壊不可"}"></button>`;
   }).join("");
 }
 
@@ -147,14 +157,14 @@ function bindSetup() {
 }
 
 function bindGame() {
-  document.querySelectorAll<HTMLButtonElement>(".cell:not(:disabled)").forEach((cell) => {
-    cell.addEventListener("click", () => {
+  document.querySelectorAll<HTMLButtonElement>(".tile:not(:disabled)").forEach((tile) => {
+    tile.addEventListener("click", () => {
       if (!board || resolving) return;
       resolving = true;
-      const index = Number(cell.dataset.index);
-      const rect = cell.getBoundingClientRect();
-      board.removed.add(index);
-      lastRemoved = index;
+      const tileIndex = Number(tile.dataset.tile);
+      const rect = tile.getBoundingClientRect();
+      removeTile(board, tileIndex);
+      lastRemoved = tileIndex;
       turns += 1;
       const readable = canDecode(board);
       if (!readable) {

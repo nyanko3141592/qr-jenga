@@ -2,7 +2,7 @@ import QRCode from "qrcode";
 import jsQR from "jsqr";
 
 export type Difficulty = "easy" | "normal" | "hard";
-export type Cell = { x: number; y: number };
+export const PLAY_GRID_SIZE = 10;
 
 export interface GameBoard {
   size: number;
@@ -13,7 +13,7 @@ export interface GameBoard {
 }
 
 // Keep matches short: these are the safe cells restored after calibrating to failure.
-const BUFFER: Record<Difficulty, number> = { easy: 6, normal: 4, hard: 2 };
+const BUFFER: Record<Difficulty, number> = { easy: 5, normal: 3, hard: 1 };
 
 function protectFunctionalPatterns(size: number, x: number, y: number) {
   const finder =
@@ -21,14 +21,14 @@ function protectFunctionalPatterns(size: number, x: number, y: number) {
     (x >= size - 8 && y <= 8) ||
     (x <= 8 && y >= size - 8);
   const timingAndFormat = x === 6 || y === 6 || x === 8 || y === 8;
-  // Version 2 has one non-finder alignment pattern near the bottom-right.
+  // Version 1 has no alignment pattern; keep this valid if a larger QR is used later.
   const alignmentCenter = size - 7;
-  const alignment = Math.abs(x - alignmentCenter) <= 2 && Math.abs(y - alignmentCenter) <= 2;
+  const alignment = size > 21 && Math.abs(x - alignmentCenter) <= 2 && Math.abs(y - alignmentCenter) <= 2;
   return finder || timingAndFormat || alignment;
 }
 
-export function createFullBoard(payload = "GAME OVER"): GameBoard {
-  const qr = QRCode.create(payload, { version: 2, errorCorrectionLevel: "H" });
+export function createFullBoard(payload = "BOOM!"): GameBoard {
+  const qr = QRCode.create(payload, { version: 1, errorCorrectionLevel: "H" });
   const size = qr.modules.size;
   const cells = Array.from(qr.modules.data, Boolean);
   const protectedCells = cells.map((_, index) => {
@@ -97,25 +97,51 @@ export function playableIndices(board: GameBoard) {
     .map(({ index }) => index);
 }
 
+export function tileCellIndices(board: GameBoard, tileIndex: number) {
+  const tileX = tileIndex % PLAY_GRID_SIZE;
+  const tileY = Math.floor(tileIndex / PLAY_GRID_SIZE);
+  const xStart = Math.floor(tileX * board.size / PLAY_GRID_SIZE);
+  const xEnd = Math.floor((tileX + 1) * board.size / PLAY_GRID_SIZE);
+  const yStart = Math.floor(tileY * board.size / PLAY_GRID_SIZE);
+  const yEnd = Math.floor((tileY + 1) * board.size / PLAY_GRID_SIZE);
+  const indices: number[] = [];
+  for (let y = yStart; y < yEnd; y += 1) {
+    for (let x = xStart; x < xEnd; x += 1) indices.push(y * board.size + x);
+  }
+  return indices;
+}
+
+export function removableIndicesForTile(board: GameBoard, tileIndex: number) {
+  return tileCellIndices(board, tileIndex).filter((index) =>
+    board.cells[index] && !board.protectedCells[index] && !board.removed.has(index));
+}
+
+export function playableTiles(board: GameBoard) {
+  return Array.from({ length: PLAY_GRID_SIZE ** 2 }, (_, index) => index)
+    .filter((index) => removableIndicesForTile(board, index).length > 0);
+}
+
+export function removeTile(board: GameBoard, tileIndex: number) {
+  const removed = removableIndicesForTile(board, tileIndex);
+  removed.forEach((index) => board.removed.add(index));
+  return removed;
+}
+
 export function makeStartingBoard(difficulty: Difficulty, seed = Date.now()) {
   const board = createFullBoard();
-  const path = shuffled(playableIndices(board), seed);
-  const safelyRemoved: number[] = [];
+  const path = shuffled(playableTiles(board), seed);
+  const safelyRemoved: number[][] = [];
 
-  for (const index of path) {
-    board.removed.add(index);
+  for (const tileIndex of path) {
+    const changed = removeTile(board, tileIndex);
     if (!canDecode(board)) {
-      board.removed.delete(index);
+      changed.forEach((index) => board.removed.delete(index));
       break;
     }
-    safelyRemoved.push(index);
+    safelyRemoved.push(changed);
   }
 
   const restoreCount = Math.min(BUFFER[difficulty], safelyRemoved.length);
-  safelyRemoved.slice(-restoreCount).forEach((index) => board.removed.delete(index));
+  safelyRemoved.slice(-restoreCount).flat().forEach((index) => board.removed.delete(index));
   return board;
-}
-
-export function cellFromIndex(board: GameBoard, index: number): Cell {
-  return { x: index % board.size, y: Math.floor(index / board.size) };
 }

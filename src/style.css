@@ -55,14 +55,17 @@ legend { font-weight: 900; margin-bottom: 14px; }
 .payload small { font-weight: 700; }
 .payload code { font-family: "DM Mono"; }
 .board-wrap { position: relative; width: min(100%, 720px, calc(100vh - 128px)); justify-self: end; }
-.qr-board { display: grid; grid-template-columns: repeat(var(--size), 1fr); aspect-ratio: 1; padding: 6.5%; background: #fff; border: 2px solid #121212; box-shadow: 16px 16px 0 #ffd84d; }
-.cell { appearance: none; min-width: 0; width: 100%; aspect-ratio: 1; border: 0; border-radius: 0; padding: 0; background: #fff; }
-.cell.black { background: #121212; }
-.cell.black:not(:disabled) { cursor: crosshair; }
-.cell.black:not(:disabled):hover { background: #e93e2d; outline: 2px solid #fff; z-index: 1; transform: scale(1.45); }
-.cell.protected { background-image: repeating-linear-gradient(45deg, transparent 0 2px, rgba(255,255,255,.26) 2px 3px); }
-.cell.fresh { background: #fff; animation: pop .18s ease-out; }
-@keyframes pop { from { transform: scale(2.8) rotate(35deg); opacity: .1; } }
+.qr-board { position: relative; aspect-ratio: 1; padding: 6.5%; background: #fff; border: 2px solid #121212; box-shadow: 16px 16px 0 #ffd84d; }
+.qr-modules { display: grid; grid-template-columns: repeat(var(--size), 1fr); width: 100%; aspect-ratio: 1; }
+.module { min-width: 0; aspect-ratio: 1; background: #fff; }
+.module.black { background: #121212; }
+.module.protected { background-image: repeating-linear-gradient(45deg, transparent 0 2px, rgba(255,255,255,.26) 2px 3px); }
+.tile-grid { position: absolute; inset: 6.5%; display: grid; grid-template-columns: repeat(var(--play-size), 1fr); z-index: 2; }
+.tile { appearance: none; min-width: 0; aspect-ratio: 1; padding: 0; border: 1px solid rgba(233,62,45,.28); background: transparent; }
+.tile:not(:disabled) { cursor: crosshair; }
+.tile:not(:disabled):hover, .tile:focus-visible { background: rgba(233,62,45,.3); outline: 2px solid #e93e2d; outline-offset: -2px; }
+.tile.hit { animation: pop .18s ease-out; }
+@keyframes pop { from { transform: scale(1.18) rotate(2deg); opacity: .25; } }
 .scan-line { position: absolute; z-index: 3; pointer-events: none; left: 4%; right: 4%; top: 50%; height: 2px; background: #e93e2d; box-shadow: 0 0 10px #e93e2d; animation: scan 1.2s ease-out infinite; opacity: .8; }
 @keyframes scan { 50% { transform: scaleX(.3); opacity: .2; } }
 .board-meta { display: flex; justify-content: space-between; margin-top: 18px; font: .7rem "DM Mono"; letter-spacing: .05em; }

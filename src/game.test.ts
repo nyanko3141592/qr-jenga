@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { canDecode, createFullBoard, makeStartingBoard, playableIndices } from "./game";
+import { canDecode, createFullBoard, makeStartingBoard, playableIndices, playableTiles, removeTile } from "./game";
 
 describe("QR Jenga board", () => {
   it("starts from a readable QR code", () => {
     const board = createFullBoard();
-    expect(board.size).toBe(25);
+    expect(board.size).toBe(21);
     expect(canDecode(board)).toBe(true);
   });
 
@@ -14,7 +14,18 @@ describe("QR Jenga board", () => {
       expect(canDecode(board)).toBe(true);
       expect(board.removed.size).toBeGreaterThan(0);
       expect(playableIndices(board).length).toBeGreaterThan(0);
+      expect(playableTiles(board).length).toBeLessThanOrEqual(100);
     }
+  });
+
+  it("removes a group of QR modules with one 10x10 play tile", () => {
+    const board = createFullBoard();
+    const tile = playableTiles(board).find((index) => {
+      const copy = createFullBoard();
+      return removeTile(copy, index).length > 1;
+    });
+    expect(tile).toBeDefined();
+    expect(removeTile(board, tile!).length).toBeGreaterThan(1);
   });
 
   it("shortens the safety margin as difficulty rises", () => {
